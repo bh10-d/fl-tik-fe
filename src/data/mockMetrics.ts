@@ -1,0 +1,118 @@
+import { MetricSnapshot } from '@/types'
+
+export const mockMetricSnapshots: MetricSnapshot[] = [
+  // Snapshots for vid-101
+  {
+    id: 'snap-101-1',
+    videoId: 'vid-101',
+    capturedAt: '2026-10-18T03:30:00Z',
+    views: 45000,
+    likes: 3800,
+    comments: 120,
+    shares: 800,
+  },
+  {
+    id: 'snap-101-2',
+    videoId: 'vid-101',
+    capturedAt: '2026-10-18T04:30:00Z',
+    views: 120000,
+    likes: 11200,
+    comments: 410,
+    shares: 2400,
+  },
+  {
+    id: 'snap-101-3',
+    videoId: 'vid-101',
+    capturedAt: '2026-10-18T05:30:00Z',
+    views: 290000,
+    likes: 24800,
+    comments: 940,
+    shares: 5600,
+  },
+  {
+    id: 'snap-101-4',
+    videoId: 'vid-101',
+    capturedAt: '2026-10-18T06:30:00Z',
+    views: 452000,
+    likes: 38200,
+    comments: 1420,
+    shares: 8900,
+  },
+
+  // Snapshots for vid-103
+  {
+    id: 'snap-103-1',
+    videoId: 'vid-103',
+    capturedAt: '2026-10-17T22:30:00Z',
+    views: 95000,
+    likes: 8200,
+    comments: 310,
+    shares: 1600,
+  },
+  {
+    id: 'snap-103-2',
+    videoId: 'vid-103',
+    capturedAt: '2026-10-18T01:00:00Z',
+    views: 310000,
+    likes: 27500,
+    comments: 1150,
+    shares: 5200,
+  },
+  {
+    id: 'snap-103-3',
+    videoId: 'vid-103',
+    capturedAt: '2026-10-18T04:00:00Z',
+    views: 580000,
+    likes: 49800,
+    comments: 2100,
+    shares: 9800,
+  },
+  {
+    id: 'snap-103-4',
+    videoId: 'vid-103',
+    capturedAt: '2026-10-18T06:30:00Z',
+    views: 840000,
+    likes: 72100,
+    comments: 3100,
+    shares: 14200,
+  },
+
+  // Snapshots for vid-105
+  {
+    id: 'snap-105-1',
+    videoId: 'vid-105',
+    capturedAt: '2026-10-17T15:00:00Z',
+    views: 180000,
+    likes: 16500,
+    comments: 650,
+    shares: 4100,
+  },
+  {
+    id: 'snap-105-2',
+    videoId: 'vid-105',
+    capturedAt: '2026-10-17T20:00:00Z',
+    views: 560000,
+    likes: 49200,
+    comments: 2100,
+    shares: 12400,
+  },
+  {
+    id: 'snap-105-3',
+    videoId: 'vid-105',
+    capturedAt: '2026-10-18T02:00:00Z',
+    views: 920000,
+    likes: 82100,
+    comments: 3500,
+    shares: 20800,
+  },
+  {
+    id: 'snap-105-4',
+    videoId: 'vid-105',
+    capturedAt: '2026-10-18T06:30:00Z',
+    views: 1250000,
+    likes: 112000,
+    comments: 4890,
+    shares: 28400,
+  },
+]
+
