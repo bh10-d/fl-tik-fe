@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   Globe,
@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ShieldCheck,
   Sliders,
+  Loader2,
 } from 'lucide-react'
 import {
   Card,
@@ -32,6 +33,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useApp } from '@/context/AppContext'
 import { UserSettings } from '@/types'
+import { dataSourcesService } from '@/services/data-sources.service'
 import { DataSourcesPage } from './DataSourcesPage'
 
 export function SettingsPage() {
@@ -41,16 +43,55 @@ export function SettingsPage() {
 
   const [formData, setFormData] = useState<UserSettings>(settings)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isLoadingBackendPolicy, setIsLoadingBackendPolicy] = useState(false)
+
+  // Load backend crawl interval policy
+  useEffect(() => {
+    let isMounted = true
+    setIsLoadingBackendPolicy(true)
+    dataSourcesService
+      .getAll()
+      .then((res: any) => {
+        if (isMounted && res?.collectionPolicy?.pollIntervalMinutes) {
+          setFormData((prev) => ({
+            ...prev,
+            autoRefreshInterval: res.collectionPolicy.pollIntervalMinutes,
+          }))
+        }
+      })
+      .catch((err: any) => {
+        console.warn('Could not fetch backend collection policy:', err?.message || err)
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingBackendPolicy(false)
+      })
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleTabChange = (val: string) => {
     setSearchParams(val === 'general' ? {} : { tab: val }, { replace: true })
   }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    updateSettings(formData)
-    setSaveSuccess(true)
-    setTimeout(() => setSaveSuccess(false), 2500)
+    setIsSaving(true)
+    try {
+      // 1. Persist directly to backend database & crawler scheduler
+      await dataSourcesService.updateCollectionPolicy({
+        pollIntervalMinutes: Number(formData.autoRefreshInterval),
+      })
+      // 2. Persist local user preferences
+      updateSettings(formData)
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 2500)
+    } catch (err: any) {
+      alert(`Failed to save crawler settings to server: ${err?.message || err}`)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -280,8 +321,15 @@ export function SettingsPage() {
 
                 <Separator />
 
-                <div className="space-y-1.5 max-w-xs">
-                  <Label htmlFor="refreshInterval">Automated Crawler Check Interval</Label>
+                <div className="space-y-1.5 max-w-sm">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="refreshInterval">Automated Crawler Check Interval</Label>
+                    {isLoadingBackendPolicy && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Loader2 className="h-2.5 w-2.5 animate-spin" /> Syncing with server...
+                      </span>
+                    )}
+                  </div>
                   <Select
                     value={String(formData.autoRefreshInterval)}
                     onValueChange={(val) =>
@@ -292,11 +340,17 @@ export function SettingsPage() {
                       <SelectValue placeholder="Select Interval" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="15">Every 15 minutes (High frequency)</SelectItem>
-                      <SelectItem value="30">Every 30 minutes (Standard)</SelectItem>
-                      <SelectItem value="60">Every 60 minutes (Conservative)</SelectItem>
+                      <SelectItem value="1">Every 1 minute (Fast Testing / Debug)</SelectItem>
+                      <SelectItem value="5">Every 5 minutes (Real-time Monitoring)</SelectItem>
+                      <SelectItem value="15">Every 15 minutes (Standard Polling)</SelectItem>
+                      <SelectItem value="30">Every 30 minutes (Medium Frequency)</SelectItem>
+                      <SelectItem value="60">Every 60 minutes (Hourly)</SelectItem>
+                      <SelectItem value="120">Every 120 minutes (2 Hours)</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-[11px] text-muted-foreground">
+                    Directly controls backend crawler scheduler. Changes take effect immediately for active creators.
+                  </p>
                 </div>
               </CardContent>
 
@@ -304,15 +358,23 @@ export function SettingsPage() {
                 {saveSuccess ? (
                   <span className="flex items-center gap-1.5 text-xs text-emerald-700 font-medium">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    Settings updated and persisted successfully!
+                    Settings & Crawler Scheduler updated successfully!
                   </span>
                 ) : (
                   <span className="text-xs text-muted-foreground">
-                    All settings are stored in local preferences.
+                    Crawler frequency is saved directly to the database engine.
                   </span>
                 )}
-                <Button type="submit" size="sm" className="gap-1.5 text-xs">
-                  <Save className="h-3.5 w-3.5" /> Save Changes
+                <Button type="submit" size="sm" className="gap-1.5 text-xs" disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-3.5 w-3.5" /> Save Changes
+                    </>
+                  )}
                 </Button>
               </CardFooter>
             </Card>

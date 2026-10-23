@@ -797,9 +797,12 @@ export function DataSourcesPage({ embedded = false }: DataSourcesPageProps = {})
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="15">Every 15 minutes (Target Interval)</SelectItem>
-                  <SelectItem value="30">Every 30 minutes (Standard)</SelectItem>
-                  <SelectItem value="60">Every 60 minutes (Low Frequency)</SelectItem>
+                  <SelectItem value="1">Every 1 minute (Fast Testing / Debug)</SelectItem>
+                  <SelectItem value="5">Every 5 minutes (Real-time Monitoring)</SelectItem>
+                  <SelectItem value="15">Every 15 minutes (Standard Polling)</SelectItem>
+                  <SelectItem value="30">Every 30 minutes (Medium Frequency)</SelectItem>
+                  <SelectItem value="60">Every 60 minutes (Hourly)</SelectItem>
+                  <SelectItem value="120">Every 120 minutes (2 Hours)</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground">

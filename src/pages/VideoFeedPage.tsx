@@ -16,6 +16,8 @@ import {
   Flame,
   Hash,
   Sparkles,
+  Copy,
+  Check,
 } from 'lucide-react'
 import {
   Card,
@@ -66,10 +68,14 @@ const VideoGridCard = React.memo(function VideoGridCard({
   video,
   displayTimezone,
   onOpenDetails,
+  isCopied,
+  onCopyLink,
 }: {
   video: Video
   displayTimezone: string
   onOpenDetails: (video: Video) => void
+  isCopied: boolean
+  onCopyLink: (e: React.MouseEvent, url: string, id: string) => void
 }) {
   const creator = video.creator
   const product = video.product
@@ -159,6 +165,27 @@ const VideoGridCard = React.memo(function VideoGridCard({
           {formatTimeAgo(video.publishedAt)}
         </span>
         <div className="flex items-center gap-1">
+          {video.videoUrl && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-1.5 text-[10px] gap-1 hover:text-primary transition-colors text-muted-foreground"
+              title="Copy TikTok video link"
+              onClick={(e) => onCopyLink(e, video.videoUrl, video.id)}
+            >
+              {isCopied ? (
+                <>
+                  <Check className="h-3 w-3 text-emerald-600" />
+                  <span className="text-emerald-600 font-medium">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3 w-3" />
+                  <span>Copy</span>
+                </>
+              )}
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
@@ -172,8 +199,9 @@ const VideoGridCard = React.memo(function VideoGridCard({
               href={video.videoUrl}
               target="_blank"
               rel="noreferrer"
-              className="p-1 hover:text-primary transition-colors"
+              className="p-1 hover:text-primary transition-colors text-muted-foreground"
               title="Open on TikTok"
+              onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink className="h-3 w-3" />
             </a>
@@ -215,6 +243,26 @@ export function VideoFeedPage() {
 
   // Modals & Sheets
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
+  const [copiedVideoId, setCopiedVideoId] = useState<string | null>(null)
+
+  const handleCopyLink = async (e: React.MouseEvent, url: string, id: string) => {
+    e.stopPropagation()
+    if (!url) return
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedVideoId(id)
+      setTimeout(() => setCopiedVideoId(null), 2000)
+    } catch {
+      const textarea = document.createElement('textarea')
+      textarea.value = url
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      setCopiedVideoId(id)
+      setTimeout(() => setCopiedVideoId(null), 2000)
+    }
+  }
   const [sheetOpen, setSheetOpen] = useState(false)
 
   // Initial load of filter options
@@ -477,6 +525,8 @@ export function VideoFeedPage() {
                   video={video}
                   displayTimezone={settings.displayTimezone}
                   onOpenDetails={openDetails}
+                  isCopied={copiedVideoId === video.id}
+                  onCopyLink={handleCopyLink}
                 />
               ))}
             </div>
@@ -610,6 +660,27 @@ export function VideoFeedPage() {
 
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
+                            {video.videoUrl && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                                title="Copy TikTok video link"
+                                onClick={(e) => handleCopyLink(e, video.videoUrl, video.id)}
+                              >
+                                {copiedVideoId === video.id ? (
+                                  <>
+                                    <Check className="h-3 w-3 text-emerald-600" />
+                                    <span className="text-emerald-600 font-medium">Copied</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="h-3 w-3" />
+                                    <span>Copy</span>
+                                  </>
+                                )}
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
@@ -623,7 +694,8 @@ export function VideoFeedPage() {
                                 asChild
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 text-xs px-2"
+                                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                                title="Open on TikTok"
                               >
                                 <a href={video.videoUrl} target="_blank" rel="noreferrer">
                                   <ExternalLink className="h-3 w-3" />

@@ -24,6 +24,8 @@ import {
   RotateCw,
   Loader2,
   CheckCircle2,
+  Copy,
+  Check,
 } from 'lucide-react'
 import {
   formatCompactNumber,
@@ -61,6 +63,25 @@ export function VideoDetailSheet({
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshSuccess, setRefreshSuccess] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
+
+  const handleCopyLink = async (url: string) => {
+    if (!url) return
+    try {
+      await navigator.clipboard.writeText(url)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch {
+      const textarea = document.createElement('textarea')
+      textarea.value = url
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    }
+  }
 
   // Live Scraper Comments
   const [comments, setComments] = useState<any[]>([])
@@ -182,11 +203,32 @@ export function VideoDetailSheet({
                 {isRefreshing ? 'Syncing...' : refreshSuccess ? 'Synced' : 'Sync'}
               </Button>
               {video.videoUrl && (
-                <Button asChild size="sm" variant="default" className="h-8 gap-1 text-xs">
-                  <a href={video.videoUrl} target="_blank" rel="noreferrer">
-                    TikTok <ExternalLink className="h-3 w-3" />
-                  </a>
-                </Button>
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => handleCopyLink(video.videoUrl)}
+                    title="Copy TikTok video link"
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-emerald-600" />
+                        <span className="text-emerald-600 font-medium">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5" />
+                        <span>Copy Link</span>
+                      </>
+                    )}
+                  </Button>
+                  <Button asChild size="sm" variant="default" className="h-8 gap-1 text-xs">
+                    <a href={video.videoUrl} target="_blank" rel="noreferrer">
+                      TikTok <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </Button>
+                </>
               )}
             </div>
           </div>
