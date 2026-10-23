@@ -31,9 +31,25 @@ export class ApiError extends Error {
 }
 
 const DEFAULT_BASE_URL = 'http://localhost:3000/api/v1'
-const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') ||
-  DEFAULT_BASE_URL
+
+function resolveApiBaseUrl(): string {
+  const envUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, '')
+  }
+
+  // Runtime fallback: if accessed in browser on a non-localhost domain/IP, use current host on port 4000
+  if (typeof window !== 'undefined' && window.location) {
+    const { protocol, hostname } = window.location
+    if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return `${protocol}//${hostname}:4000/api/v1`
+    }
+  }
+
+  return DEFAULT_BASE_URL
+}
+
+const API_BASE_URL = resolveApiBaseUrl()
 
 export interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | null | undefined>

@@ -2,15 +2,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Allow passing API URL via docker build args or compose
-ARG VITE_API_BASE_URL
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-
-# Install dependencies
+# Install dependencies first (for docker cache optimization)
 COPY package*.json ./
 RUN npm ci
 
-# Copy source code and build (reads .env and VITE_API_BASE_URL build arg)
+# Copy source code and build (reads .env copied into image)
 COPY . .
 RUN npm run build
 
